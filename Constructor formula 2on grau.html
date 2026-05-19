@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Construeix la fórmula | Nivells interactius</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Poppins', 'Roboto', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(145deg, #1a2a3a 0%, #0f1a24 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .game-container {
+            max-width: 1300px;
+            width: 100%;
+            background: rgba(255,248,235,0.95);
+            border-radius: 3rem;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.4);
+            overflow: hidden;
+            padding: 20px 25px 30px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            color: #2d3e50;
+            margin: 0 0 5px 0;
+            letter-spacing: 1px;
+        }
+        .sub {
+            text-align: center;
+            font-style: italic;
+            color: #2c5282;
+            margin-bottom: 25px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .level-bar {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 35px;
+            flex-wrap: wrap;
+        }
+        .level-btn {
+            background: #cbd5e0;
+            border: none;
+            font-size: 1.3rem;
+            font-weight: bold;
+            padding: 12px 32px;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #1e293b;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            min-width: 140px;
+        }
+        .level-btn.active {
+            background: #f9a826;
+            color: white;
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(249,168,38,0.4);
+        }
+
+        .workspace {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        .formula-area {
+            flex: 2;
+            min-width: 300px;
+            background: #fef9e6;
+            border-radius: 2rem;
+            padding: 20px 20px;
+            box-shadow: inset 0 0 0 2px #fff8, 0 8px 18px rgba(0,0,0,0.1);
+        }
+        .terms-area {
+            flex: 1.2;
+            min-width: 260px;
+            background: #eef2f5;
+            border-radius: 2rem;
+            padding: 20px 15px;
+            box-shadow: inset 0 0 0 1px #ffffff80, 0 8px 18px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            border-left: 7px solid #f9a826;
+            padding-left: 18px;
+            margin: 0 0 16px 0;
+            color: #2c3e50;
+        }
+
+        .formula-builder {
+            background: #ffffffd9;
+            border-radius: 2rem;
+            padding: 30px 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            border: 2px solid #f1bc6b;
+            min-height: 200px;
+        }
+        .fraction-box {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 8px;
+            vertical-align: middle;
+        }
+        .fraction-numerator {
+            background: #fff6e8;
+            border-radius: 20px;
+            padding: 8px 20px;
+            border-bottom: 3px solid #b97f3a;
+            font-size: 1.6rem;
+            font-weight: bold;
+            font-family: monospace;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .fraction-denominator {
+            background: #fff6e8;
+            border-radius: 20px;
+            padding: 8px 20px;
+            margin-top: 6px;
+            font-size: 1.6rem;
+            font-weight: bold;
+            font-family: monospace;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .slot {
+            background: #f7f3e9;
+            border-radius: 60px;
+            padding: 8px 18px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            color: #1f3a3f;
+            box-shadow: inset 0 1px 3px #0001, 0 2px 4px white;
+            min-width: 85px;
+            text-align: center;
+            border: 1px solid #ecd9b4;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .slot.empty-slot {
+            background: #fffaec;
+            border: 2px dotted #bc9a6c;
+            color: #888;
+            min-width: 100px;
+        }
+        .slot.empty-slot::before {
+            content: "______";
+            opacity: 0.5;
+            font-size: 1rem;
+        }
+        .slot.filled {
+            background: #cbe5d0;
+            border: 1px solid #5a8f4c;
+            color: #1b4d1b;
+            font-weight: bold;
+        }
+        .slot.filled::before {
+            content: none;
+        }
+        .inline-equal {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0 6px;
+            color: #2c5282;
+        }
+
+        .terms-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            min-height: 300px;
+        }
+        .drag-term {
+            background: #f5e7d3;
+            border-radius: 80px;
+            padding: 14px 22px;
+            font-size: 1.4rem;
+            font-family: monospace;
+            font-weight: bold;
+            color: #2d3748;
+            box-shadow: 0 6px 0 #b97f3a;
+            cursor: grab;
+            transition: 0.05s linear;
+            border: 1px solid #e7bf8e;
+            text-align: center;
+            width: auto;
+            min-width: 90px;
+        }
+        .drag-term:active { cursor: grabbing; }
+        .drag-term.dragging { opacity: 0.4; }
+
+        .hint-panel {
+            background: #e6dfce;
+            border-radius: 1.5rem;
+            margin-top: 25px;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .check-btn {
+            background: #2c7a4d;
+            color: white;
+            border: none;
+            padding: 10px 28px;
+            font-size: 1.1rem;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .reset-btn {
+            background: #c4450c;
+        }
+        .message {
+            font-weight: bold;
+            background: white;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            min-width: 160px;
+            text-align: center;
+        }
+        .credit {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 12px;
+            border-top: 2px solid #e9c891;
+            font-size: 1rem;
+            font-family: 'Segoe UI', sans-serif;
+            color: #2c3e50;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 6px 25px;
+        }
+        .credit strong { color: #b45f1b; }
+        @media (max-width: 780px) {
+            .drag-term { font-size: 1rem; padding: 8px 14px; min-width: 70px; }
+            .slot { font-size: 1.1rem; padding: 5px 12px; min-width: 70px; }
+            .fraction-numerator, .fraction-denominator { font-size: 1.2rem; padding: 5px 12px; }
+        }
+        button:hover { filter: brightness(0.96); transform: scale(0.97); }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <h1>🧩 Construeix la fórmula</h1>
+    <div class="sub">Arrossega els termes als espais buits. Fes clic damunt d'un terme posat per a eliminar-lo.</div>
+
+    <div class="level-bar">
+        <button data-level="easy" class="level-btn active">🌿 BÀSIC</button>
+        <button data-level="medium" class="level-btn">⚡ INTERMEDI</button>
+        <button data-level="hard" class="level-btn">🔥 EXPERT</button>
+    </div>
+
+    <div class="workspace">
+        <div class="formula-area">
+            <div class="section-title">📐 Zona de construcció</div>
+            <div id="formulaBuilder" class="formula-builder">
+                <!-- Es generarà dinàmicament -->
+            </div>
+            <div class="hint-panel">
+                <div id="resultMsg" class="message"></div>
+                <div style="display: flex; gap: 12px;">
+                    <button id="checkBtn" class="check-btn">✅ Verifica</button>
+                    <button id="resetLevelBtn" class="check-btn reset-btn">🔄 Reinicia</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="terms-area">
+            <div class="section-title">📦 Termes</div>
+            <div id="termsContainer" class="terms-pool"></div>
+        </div>
+    </div>
+
+    <div class="credit">
+        <strong>Dissenyat per:</strong> Eros Robledo
+    </div>
+</div>
+
+<script>
+    // Estructura: quatre slots (num1, operador ±, sqrt, denom)
+    let currentLevel = "easy";
+    let currentValues = {
+        num1: null,   // -b
+        operator: null, // ±
+        sqrt: null,    // √(b²-4ac)
+        denom: null    // 2a
+    };
+    let slotElements = null;
+    
+    // POOLS DE TERMES (ara el ± és un terme independent)
+    const TERMS_BASIC = ["-b", "±", "√(b²-4ac)", "2a"];
+    const TERMS_INTERMEDI = ["-b", "+b", "b", "±", "∓", "√(b²-4ac)", "√(4ac-b²)", "2a", "a/2", "-2a"];
+    const TERMS_EXPERT = [
+        "-b", "+b", "b", "-2b", "±", "∓", "±√", "√(b²-4ac)", "√(b²+4ac)", "√(4ac-b²)", 
+        "2a", "a", "2a²", "-2a", "4ac", "b²", "(-b)", "(b)", "√Δ", "1/(2a)", "±b", "∓b"
+    ];
+    
+    function getTermsForLevel() {
+        if (currentLevel === "easy") return [...TERMS_BASIC];
+        if (currentLevel === "medium") return [...TERMS_INTERMEDI];
+        return [...TERMS_EXPERT];
+    }
+    
+    // Construir la interfície de fracció amb 4 slots: [-b] [±] [√(...)] / [2a]
+    function buildFractionInterface() {
+        const container = document.getElementById("formulaBuilder");
+        container.innerHTML = "";
+        
+        // "x ="
+        const xEquals = document.createElement("span");
+        xEquals.className = "inline-equal";
+        xEquals.innerText = "x =";
+        container.appendChild(xEquals);
+        
+        // Fracció
+        const fractionDiv = document.createElement("div");
+        fractionDiv.className = "fraction-box";
+        
+        // Numerador
+        const numeratorDiv = document.createElement("div");
+        numeratorDiv.className = "fraction-numerator";
+        
+        const slotNum1 = document.createElement("div");
+        slotNum1.className = "slot empty-slot";
+        slotNum1.setAttribute("data-slot-id", "num1");
+        
+        const slotOperator = document.createElement("div");
+        slotOperator.className = "slot empty-slot";
+        slotOperator.setAttribute("data-slot-id", "operator");
+        
+        const slotSqrt = document.createElement("div");
+        slotSqrt.className = "slot empty-slot";
+        slotSqrt.setAttribute("data-slot-id", "sqrt");
+        
+        numeratorDiv.appendChild(slotNum1);
+        numeratorDiv.appendChild(slotOperator);
+        numeratorDiv.appendChild(slotSqrt);
+        
+        // Denominador
+        const denominatorDiv = document.createElement("div");
+        denominatorDiv.className = "fraction-denominator";
+        const slotDenom = document.createElement("div");
+        slotDenom.className = "slot empty-slot";
+        slotDenom.setAttribute("data-slot-id", "denom");
+        denominatorDiv.appendChild(slotDenom);
+        
+        fractionDiv.appendChild(numeratorDiv);
+        fractionDiv.appendChild(denominatorDiv);
+        container.appendChild(fractionDiv);
+        
+        return { slotNum1, slotOperator, slotSqrt, slotDenom };
+    }
+    
+    // Actualitzar aspecte visual
+    function updateSlotsVisual() {
+        if (!slotElements) return;
+        
+        // num1
+        if (currentValues.num1) {
+            slotElements.slotNum1.innerText = currentValues.num1;
+            slotElements.slotNum1.classList.add("filled");
+            slotElements.slotNum1.classList.remove("empty-slot");
+        } else {
+            slotElements.slotNum1.innerText = "";
+            slotElements.slotNum1.classList.remove("filled");
+            slotElements.slotNum1.classList.add("empty-slot");
+        }
+        
+        // operator ±
+        if (currentValues.operator) {
+            slotElements.slotOperator.innerText = currentValues.operator;
+            slotElements.slotOperator.classList.add("filled");
+            slotElements.slotOperator.classList.remove("empty-slot");
+        } else {
+            slotElements.slotOperator.innerText = "";
+            slotElements.slotOperator.classList.remove("filled");
+            slotElements.slotOperator.classList.add("empty-slot");
+        }
+        
+        // sqrt
+        if (currentValues.sqrt) {
+            slotElements.slotSqrt.innerText = currentValues.sqrt;
+            slotElements.slotSqrt.classList.add("filled");
+            slotElements.slotSqrt.classList.remove("empty-slot");
+        } else {
+            slotElements.slotSqrt.innerText = "";
+            slotElements.slotSqrt.classList.remove("filled");
+            slotElements.slotSqrt.classList.add("empty-slot");
+        }
+        
+        // denom
+        if (currentValues.denom) {
+            slotElements.slotDenom.innerText = currentValues.denom;
+            slotElements.slotDenom.classList.add("filled");
+            slotElements.slotDenom.classList.remove("empty-slot");
+        } else {
+            slotElements.slotDenom.innerText = "";
+            slotElements.slotDenom.classList.remove("filled");
+            slotElements.slotDenom.classList.add("empty-slot");
+        }
+    }
+    
+    // Configurar interaccions: drop i click per eliminar
+    function setupSlotInteractions() {
+        if (!slotElements) return;
+        const slots = [
+            { el: slotElements.slotNum1, id: "num1" },
+            { el: slotElements.slotOperator, id: "operator" },
+            { el: slotElements.slotSqrt, id: "sqrt" },
+            { el: slotElements.slotDenom, id: "denom" }
+        ];
+        slots.forEach(slot => {
+            slot.el.addEventListener("dragover", (e) => e.preventDefault());
+            slot.el.addEventListener("drop", (e) => {
+                e.preventDefault();
+                const draggedValue = e.dataTransfer.getData("text/plain");
+                if (!draggedValue) return;
+                currentValues[slot.id] = draggedValue;
+                updateSlotsVisual();
+                document.getElementById("resultMsg").innerHTML = "";
+                document.getElementById("resultMsg").style.background = "";
+            });
+            
+            slot.el.addEventListener("click", (e) => {
+                e.stopPropagation();
+                if (currentValues[slot.id]) {
+                    currentValues[slot.id] = null;
+                    updateSlotsVisual();
+                    document.getElementById("resultMsg").innerHTML = "";
+                    document.getElementById("resultMsg").style.background = "";
+                }
+            });
+        });
+    }
+    
+    // Renderitzar termes (desordenats en intermedi i expert)
+    function renderTermsPool() {
+        const container = document.getElementById("termsContainer");
+        container.innerHTML = "";
+        let terms = getTermsForLevel();
+        
+        // Desordenar SEMPRE en intermedi i expert, en bàsic també lleugerament però mantenint claredat
+        if (currentLevel === "medium" || currentLevel === "hard") {
+            for (let i = terms.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [terms[i], terms[j]] = [terms[j], terms[i]];
+            }
+        }
+        
+        terms.forEach(term => {
+            const dragEl = document.createElement("div");
+            dragEl.className = "drag-term";
+            dragEl.innerText = term;
+            dragEl.setAttribute("draggable", "true");
+            dragEl.addEventListener("dragstart", (e) => {
+                e.dataTransfer.setData("text/plain", term);
+                e.dataTransfer.effectAllowed = "copy";
+                dragEl.classList.add("dragging");
+            });
+            dragEl.addEventListener("dragend", () => dragEl.classList.remove("dragging"));
+            container.appendChild(dragEl);
+        });
+    }
+    
+    // Verificació: comprovar els 4 elements
+    function verifyFormula() {
+        const expected = {
+            num1: "-b",
+            operator: "±",
+            sqrt: "√(b²-4ac)",
+            denom: "2a"
+        };
+        
+        const isNum1Ok = (currentValues.num1 === expected.num1);
+        const isOperatorOk = (currentValues.operator === expected.operator);
+        const isSqrtOk = (currentValues.sqrt === expected.sqrt);
+        const isDenomOk = (currentValues.denom === expected.denom);
+        const allFilled = (currentValues.num1 && currentValues.operator && currentValues.sqrt && currentValues.denom);
+        
+        const msgDiv = document.getElementById("resultMsg");
+        if (allFilled && isNum1Ok && isOperatorOk && isSqrtOk && isDenomOk) {
+            msgDiv.innerHTML = "✅ Fórmula correcta";
+            msgDiv.style.background = "#c6f7d0";
+            msgDiv.style.color = "#1b4d1b";
+        } else {
+            msgDiv.innerHTML = "❌ Fórmula incorrecta";
+            msgDiv.style.background = "#ffe0b5";
+            msgDiv.style.color = "#a1220a";
+        }
+    }
+    
+    // Reiniciar valors
+    function resetCurrentLevelValues() {
+        currentValues = { num1: null, operator: null, sqrt: null, denom: null };
+        updateSlotsVisual();
+        const msgDiv = document.getElementById("resultMsg");
+        msgDiv.innerHTML = "";
+        msgDiv.style.background = "";
+    }
+    
+    // Carregar nivell
+    function loadLevel(level) {
+        currentLevel = level;
+        currentValues = { num1: null, operator: null, sqrt: null, denom: null };
+        
+        slotElements = buildFractionInterface();
+        setupSlotInteractions();
+        updateSlotsVisual();
+        renderTermsPool();
+        
+        const msgDiv = document.getElementById("resultMsg");
+        msgDiv.innerHTML = "";
+        msgDiv.style.background = "";
+        
+        document.querySelectorAll(".level-btn").forEach(btn => {
+            if (btn.getAttribute("data-level") === level) btn.classList.add("active");
+            else btn.classList.remove("active");
+        });
+    }
+    
+    function init() {
+        document.body.addEventListener("dragover", (e) => e.preventDefault());
+        document.body.addEventListener("drop", (e) => e.preventDefault());
+        
+        loadLevel("easy");
+        
+        document.getElementById("checkBtn").addEventListener("click", verifyFormula);
+        document.getElementById("resetLevelBtn").addEventListener("click", () => {
+            resetCurrentLevelValues();
+        });
+        
+        document.querySelectorAll(".level-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const lvl = btn.getAttribute("data-level");
+                if (lvl === "easy") loadLevel("easy");
+                else if (lvl === "medium") loadLevel("medium");
+                else if (lvl === "hard") loadLevel("hard");
+            });
+        });
+    }
+    
+    init();
+</script>
+</body>
+</html>
